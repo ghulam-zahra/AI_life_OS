@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const profileRoutes = require('./routes/profile.routes');
+const timelineRoutes = require('./routes/timeline.routes');
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/profile', profileRoutes);
+app.use('/api/timeline', timelineRoutes);
 
 const PORT = process.env.PORT || 5000;
 
