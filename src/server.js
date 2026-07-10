@@ -8,6 +8,7 @@ const roadmapRoutes = require('./routes/roadmap.routes');
 const projectsRoutes = require('./routes/projects.routes');
 const resumeRoutes = require('./routes/resume.routes');
 const readinessRoutes = require('./routes/readiness.routes');
+const chatRoutes = require('./routes/chat.routes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/readiness', readinessRoutes);
+app.use('/api/chat', chatRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

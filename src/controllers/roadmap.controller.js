@@ -4,15 +4,15 @@ const { callAI } = require('../services/ai.service');
 const generateRoadmap = async (req, res) => {
   try {
     const { userId } = req.body;
+    if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
 
-    if (!userId) {
-      return res.status(400).json({ success: false, error: 'userId is required' });
+    const cachedDoc = await db.collection('roadmap_results').doc(userId).get();
+    if (cachedDoc.exists) {
+      return res.json(cachedDoc.data());
     }
 
     const userDoc = await db.collection('users').doc(userId).get();
-    if (!userDoc.exists) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
+    if (!userDoc.exists) return res.status(404).json({ success: false, error: 'User not found' });
     const profile = userDoc.data();
 
     const systemPrompt = `You are a learning path advisor AI. Respond ONLY with valid JSON, no explanations, no markdown, matching this exact structure:

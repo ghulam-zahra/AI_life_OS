@@ -6,6 +6,11 @@ const generateResume = async (req, res) => {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
 
+    const cachedDoc = await db.collection('resume_results').doc(userId).get();
+    if (cachedDoc.exists) {
+      return res.json(cachedDoc.data());
+    }
+
     const userDoc = await db.collection('users').doc(userId).get();
     if (!userDoc.exists) return res.status(404).json({ success: false, error: 'User not found' });
     const profile = userDoc.data();

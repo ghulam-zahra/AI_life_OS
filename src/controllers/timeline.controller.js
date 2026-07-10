@@ -4,16 +4,16 @@ const { callAI } = require('../services/ai.service');
 const generateTimeline = async (req, res) => {
   try {
     const { userId } = req.body;
+    if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
 
-    if (!userId) {
-      return res.status(400).json({ success: false, error: 'userId is required' });
+    // Check cache first
+    const cachedDoc = await db.collection('timeline_results').doc(userId).get();
+    if (cachedDoc.exists) {
+      return res.json(cachedDoc.data());
     }
 
-    // Get user profile for personalization
     const userDoc = await db.collection('users').doc(userId).get();
-    if (!userDoc.exists) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
+    if (!userDoc.exists) return res.status(404).json({ success: false, error: 'User not found' });
     const profile = userDoc.data();
 
     const systemPrompt = `You are a career advisor AI. Respond ONLY with valid JSON, no explanations, no markdown formatting, matching this exact structure:
@@ -38,23 +38,19 @@ Generate exactly 3 scenarios based on the user's interests and dream job.`;
     try {
       timelineData = await callAI(systemPrompt, userPrompt);
     } catch (aiError) {
-      // Fallback static data if AI fails
       timelineData = {
-        scenarios: [
-          {
-            name: "Scenario A: Frontend Developer",
-            timelineMonths: 6,
-            skillsToLearn: ["React", "Node.js", "Portfolio Projects"],
-            salaryRange: "PKR 80k-150k",
-            companies: ["Local Startups", "Software Houses"],
-            interviewDifficulty: "Medium",
-            riskLevel: "Low"
-          }
-        ]
+        scenarios: [{
+          name: "Scenario A: Frontend Developer",
+          timelineMonths: 6,
+          skillsToLearn: ["React", "Node.js", "Portfolio Projects"],
+          salaryRange: "PKR 80k-150k",
+          companies: ["Local Startups", "Software Houses"],
+          interviewDifficulty: "Medium",
+          riskLevel: "Low"
+        }]
       };
     }
 
-    // Cache result in Firestore
     await db.collection('timeline_results').doc(userId).set({
       ...timelineData,
       generatedAt: new Date().toISOString()
