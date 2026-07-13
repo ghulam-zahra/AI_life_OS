@@ -43,11 +43,22 @@ const generateResume = async (req, res) => {
     };
 
     const skillsText = Array.isArray(profile.skills) ? profile.skills.join(', ') : (profile.skills || 'Not specified');
-    const toolsText = tools?.length ? tools.join(', ') : 'None specified';
-    const workExpText = workExperience?.length
-      ? workExperience.map(w => `${w.title || w.role || 'Role'} at ${w.company || 'Company'} (${w.duration || 'duration not specified'}): ${w.description || ''}`).join(' | ')
-      : 'No prior work experience — highlight academic projects and skills instead';
-    const certsText = certifications?.length ? certifications.join(', ') : 'None';
+    const toolsText = Array.isArray(tools) && tools.length
+  ? tools.join(', ')
+  : (typeof tools === 'string' && tools.trim() ? tools : 'None specified');
+
+const workExpText = Array.isArray(workExperience) && workExperience.length
+  ? workExperience.map(w => {
+      if (typeof w === 'string') return w;
+      return `${w?.title || w?.role || 'Role'} at ${w?.company || 'Company'} (${w?.duration || 'duration not specified'}): ${w?.description || ''}`;
+    }).join(' | ')
+  : (typeof workExperience === 'string' && workExperience.trim()
+      ? workExperience
+      : 'No prior work experience — highlight academic projects and skills instead');
+
+const certsText = Array.isArray(certifications) && certifications.length
+  ? certifications.join(', ')
+  : (typeof certifications === 'string' && certifications.trim() ? certifications : 'None');
 
     const systemPrompt = `You are a resume writer AI. Respond ONLY with valid JSON, no explanations, no markdown, matching this exact structure:
 {
